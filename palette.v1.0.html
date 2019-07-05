@@ -123,118 +123,27 @@
 			var colorTemp=document.getElementsByClassName('colors');
 			var tempColors=[];
 			class RGBColor{
-				//写了type=hsv的才是hsv，不然统统默认rgb
-				constructor(r,g,b,type){
-					var _type=type||g;
+				constructor(r,g,b){
 					if(typeof r=='object'){
-						if(r.r&&r.g&&r.b){
-							r=r.r;g=r.g;b=r.b;
-						}
-						if(r.style){
-							r=r.style.background.replace(/ /g,'');
-						}
-						if(r.constructor==Array){
-							var temp=r;
-							r=temp[0];
-							g=temp[1];
-							b=temp[2]
-						}
+						r=r.style.background.replace(/ /g,'');
 					}
 					if(typeof r=='string'){
 						if(/rgb/.test(r)){
 							console.log(r)
 							var temp = /\d+,\d+,\d+/.exec(r)[0].split(',');
-						}else if(/#/.test(r)){
-							var temp = r.match(/[0-9a-f]{2}/g)
-						}
 							r=temp[0];
 							g=temp[1];
 							b=temp[2]
-					}
-					if(_type=='hsv'){
-						console.log(g)
-						this.h=r;
-						this.s=g;
-						console.log(this.s)
-						this.v=b;
-						console.log('hsv')
-						console.log(r,g,b)
-						this.hsv2rgb(r,g,b)
-					}else{
-						this.r=r;
-						this.g=g;
-						this.b=b;
-					}
-					
-					
-				}
-				rgb2hsv(){
-					var max=Math.max(this.r,this.g,this.b),min=Math.min(this.r,this.g,this.b);
-//					if(max==min){
-//						this.h=0;
-//					}else if(max==r){
-//						this.h=60*(g-b)/(max-min)+(g>=b)?0:360;
-//					}else if(max==g){
-//						this.h=60*(b-r)/(max-min)+120;
-//					}else if(max==b){
-//						this.h=60*(r-g)/(max-min)+240;
-//					}
-					switch(max){
-						case min:
-							this.h=0;
-							break;
-						case r:
-							this.h=60*(g-b)/(max-min)+(g>=b)?0:360;
-							break;
-						case g:
-							this.h=60*(b-r)/(max-min)+120;
-							break;
-						case b:
-							this.h=60*(r-g)/(max-min)+240;
-							break;
-					}
-//					this.v=0.5*(max-min)/255;
-					this.v=max/255;
-					this.s=max=0?0:((max-min)/max);
-					return [this.h,this.s,this.v]
-				}
-				hsv2rgb(h,s,v){
-					var r,g,b,_h,f,p,q,t;
-					s/=100;
-					v/=100;
-					if ( s == 0 ) {
-						r = g = b = v;
-						
-					}else{
-						
-						_h = h % 6;
-						f = h / 60 - _h;
-						p = v * ( 1 - s );
-						q = v * ( 1 - f * s );
-						t = v * ( 1 - ( 1 - f ) * s);
-						console.log(p,q,t)
-						switch( _h ){
-							case 0:
-								r = v; g = t; b = p; break;
-							case 1:
-								r = q; g = v; b = p; break;
-							case 2:
-								r = p; g = v; b = t; break;
-							case 3:
-								r = p; g = q; b = v; break;
-							case 4:
-								r = t; g = p; b = v; break;
-							case 5:
-								r = v; g = p; b = q; break;
+						}else if(/#/.test(r)){
+							var temp = r.match(/[0-9a-f]{2}/g)
+							r=temp[0];
+							g=temp[1];
+							b=temp[2]
 						}
 					}
-					this.r=Math.round(r*255);
-					this.g=Math.round(g*255);
-					this.b=Math.round(b*255);
-					return [this.r,this.g,this.b]
-				}
-				setColor(){
-					
+					this.r=r;
+					this.g=g;
+					this.b=b;
 				}
 			}
 			class palette{
@@ -245,45 +154,48 @@
 					this.bar=document.getElementById('bar').getContext('2d');
 					
 				}
-				drawMain(){
-					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
-					inputR.value=r;
-					inputG.value=g;
-					inputB.value=b;
-					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
+				init(){
 					cvs.clearRect(0,0,255,255)
-					var paletteGradient=null;
-					for(let y=0;y<256;y++){
-						paletteGradient=cvs.createLinearGradient(0,0,255,0);
-						paletteGradient.addColorStop(0,'rgb('+r+','+(255-y)+','+0+')');
-						paletteGradient.addColorStop(1,'rgb('+r+','+(255-y)+','+255+')');
-						cvs.fillStyle=paletteGradient;
-						cvs.fillRect(0,y-1,255,y);
-					}
-				}
-				drawBar(){
+					bar.clearRect(0,0,30,255)
 					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
 					inputR.value=r;
 					inputG.value=g;
 					inputB.value=b;
 					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
-					bar.clearRect(0,0,30,255)
 					var barGradient=bar.createLinearGradient(0,0,0,255);
 						barGradient.addColorStop(0,'rgb(255,'+g+','+b+')');
 						barGradient.addColorStop(1,'rgb(0,'+g+','+b+')');
 						bar.fillStyle=barGradient;
 						bar.fillRect(0,0,30,255);
-				}
-				init(){
-					this.drawBar();
-					this.drawMain()
-					
-					
-					
 //					var paletteGradient=cvs.createLinearGradient(0,0,255,0);
-					
+					var paletteGradient=null;
 //					console.time()
-					
+					for(let y=0;y<256;y++){
+						
+						//事实证明一个一个点话太卡了，不如我们试试用渐变一条一条线的画
+//						bar.strokeStyle='rgb('+(255-y)+','+g+','+b+')';
+//						bar.beginPath();
+//							bar.moveTo(0,y);
+//							bar.lineTo(30,y);
+//							bar.stroke()
+//						for(let x=0;x<256;x++){
+//							cvs.strokeStyle='rgb('+r+','+(255-y)+','+x+')';
+//							cvs.beginPath();
+//							cvs.moveTo(x,y);
+//							cvs.lineTo(x+1,y);
+//							cvs.stroke()
+//						}
+						paletteGradient=cvs.createLinearGradient(0,0,255,0);
+						paletteGradient.addColorStop(0,'rgb('+r+','+(255-y)+','+0+')');
+						paletteGradient.addColorStop(1,'rgb('+r+','+(255-y)+','+255+')');
+						cvs.fillStyle=paletteGradient;
+						cvs.fillRect(0,y-1,255,y);
+//						cvs.strokeStyle=paletteGradient;
+//						cvs.beginPath()
+//						cvs.moveTo(0,y);
+//						cvs.lineTo(256,y);
+//						cvs.stroke()
+					}
 //					console.timeEnd()
 				}
 			}
@@ -302,8 +214,7 @@
 				if(/y/.test(xy)){
 					picker.style.top=y+'px'
 				}
-				t.drawBar()
-				t.drawMain()
+				t.init()
 				function Move(e){
 					var x=e.clientX-getOffsetLeft(that),y=e.clientY-getOffsetTop(that);
 					x=limit(x,0,255),y=limit(y,0,255);
@@ -416,8 +327,6 @@
 				tmp-=document.documentElement.scrollLeft
 				return tmp;
 			}
-			
-			console.log(new RGBColor([1,2,3],'hsv'))
 		</script>
 	</body>
 </html>

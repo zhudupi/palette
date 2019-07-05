@@ -152,14 +152,13 @@
 							b=temp[2]
 					}
 					if(_type=='hsv'){
-						console.log(g)
+//						console.log(g)
 						this.h=r;
 						this.s=g;
-						console.log(this.s)
 						this.v=b;
-						console.log('hsv')
-						console.log(r,g,b)
-						this.hsv2rgb(r,g,b)
+						this.r=this.hsv2rgb()[0];
+						this.g=this.hsv2rgb()[1];
+						this.b=this.hsv2rgb()[2]
 					}else{
 						this.r=r;
 						this.g=g;
@@ -170,15 +169,6 @@
 				}
 				rgb2hsv(){
 					var max=Math.max(this.r,this.g,this.b),min=Math.min(this.r,this.g,this.b);
-//					if(max==min){
-//						this.h=0;
-//					}else if(max==r){
-//						this.h=60*(g-b)/(max-min)+(g>=b)?0:360;
-//					}else if(max==g){
-//						this.h=60*(b-r)/(max-min)+120;
-//					}else if(max==b){
-//						this.h=60*(r-g)/(max-min)+240;
-//					}
 					switch(max){
 						case min:
 							this.h=0;
@@ -198,10 +188,11 @@
 					this.s=max=0?0:((max-min)/max);
 					return [this.h,this.s,this.v]
 				}
-				hsv2rgb(h,s,v){
-					var r,g,b,_h,f,p,q,t;
-					s/=100;
-					v/=100;
+				hsv2rgb(){
+					var s,h,v,r,g,b,_h,f,p,q,t;
+					h=this.h;
+					s=this.s/100;
+					v=this.v/100;
 					if ( s == 0 ) {
 						r = g = b = v;
 						
@@ -212,7 +203,6 @@
 						p = v * ( 1 - s );
 						q = v * ( 1 - f * s );
 						t = v * ( 1 - ( 1 - f ) * s);
-						console.log(p,q,t)
 						switch( _h ){
 							case 0:
 								r = v; g = t; b = p; break;
@@ -243,35 +233,75 @@
 					this.cvs=document.getElementById('palette').getContext('2d'),
 					this.Dbar=document.getElementById('bar'),
 					this.bar=document.getElementById('bar').getContext('2d');
-					
+					this.type='hsv';
 				}
 				drawMain(){
-					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
-					inputR.value=r;
-					inputG.value=g;
-					inputB.value=b;
-					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
+					
+//					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
+//					inputR.value=r;
+//					inputG.value=g;
+//					inputB.value=b;
+//					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
+//					cvs.clearRect(0,0,255,255)
+//					var paletteGradient=null;
+//					for(let y=0;y<256;y++){
+//						paletteGradient=cvs.createLinearGradient(0,0,255,0);
+//						paletteGradient.addColorStop(0,'rgb('+r+','+(255-y)+','+0+')');
+//						paletteGradient.addColorStop(1,'rgb('+r+','+(255-y)+','+255+')');
+//						cvs.fillStyle=paletteGradient;
+//						cvs.fillRect(0,y-1,255,y);
+//					}
+					var h=Math.floor(360*(255-barPicker.offsetTop)/255), 
+						v=Math.floor(100*(255-palettePicker.offsetTop)/255),
+						s=Math.floor(100*palettePicker.offsetLeft/255);
+						console.log(h)
+					inputR.value=h;
+					inputG.value=s;
+					inputB.value=v;
+//					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
 					cvs.clearRect(0,0,255,255)
 					var paletteGradient=null;
+					var _v=0;
+					var temp=null;
+//					console.log(new RGBColor(h,100,100,'hsv'))
 					for(let y=0;y<256;y++){
 						paletteGradient=cvs.createLinearGradient(0,0,255,0);
-						paletteGradient.addColorStop(0,'rgb('+r+','+(255-y)+','+0+')');
-						paletteGradient.addColorStop(1,'rgb('+r+','+(255-y)+','+255+')');
+//						paletteGradient.addColorStop(0,'rgb('+(255-y)+','+(255-y)+','+0+')');
+//						paletteGradient.addColorStop(1,'rgb('+(255-y)+','+(255-y)+','+255+')');
+						_v=Math.floor(100*(255-y)/255);
+						temp=new RGBColor(h,100,_v,'hsv')
+//						console.log(temp)
+						if(y>=140){
+							
+						console.log(temp)
+						}
+						paletteGradient.addColorStop(0,'#'+(255-y).toString(16)+(255-y).toString(16)+(255-y).toString(16));
+						paletteGradient.addColorStop(1,'rgb('+[temp.r,temp.g,temp.b].join(',')+')');
 						cvs.fillStyle=paletteGradient;
 						cvs.fillRect(0,y-1,255,y);
 					}
 				}
 				drawBar(){
-					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
-					inputR.value=r;
-					inputG.value=g;
-					inputB.value=b;
-					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
-					bar.clearRect(0,0,30,255)
-					var barGradient=bar.createLinearGradient(0,0,0,255);
-						barGradient.addColorStop(0,'rgb(255,'+g+','+b+')');
-						barGradient.addColorStop(1,'rgb(0,'+g+','+b+')');
-						bar.fillStyle=barGradient;
+//					var r=255-barPicker.offsetTop,g=255-palettePicker.offsetTop,b=palettePicker.offsetLeft;
+//					inputR.value=r;
+//					inputG.value=g;
+//					inputB.value=b;
+//					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
+//					bar.clearRect(0,0,30,255)
+//					var barGradient=bar.createLinearGradient(0,0,0,255);
+//						barGradient.addColorStop(0,'rgb(255,'+g+','+b+')');
+//						barGradient.addColorStop(1,'rgb(0,'+g+','+b+')');
+//						bar.fillStyle=barGradient;
+//						bar.fillRect(0,0,30,255);
+					var hsbGradient=bar.createLinearGradient(0,0,0,255);
+						hsbGradient.addColorStop(0,'#ff0000');
+						hsbGradient.addColorStop(1/6,'#ff00ff');
+						hsbGradient.addColorStop(2/6,'#0000ff');
+						hsbGradient.addColorStop(3/6,'#00ffff');
+						hsbGradient.addColorStop(4/6,'#00ff00');
+						hsbGradient.addColorStop(5/6,'#ffff00');
+						hsbGradient.addColorStop(1,'#ff0000');
+						bar.fillStyle=hsbGradient;
 						bar.fillRect(0,0,30,255);
 				}
 				init(){
@@ -417,7 +447,6 @@
 				return tmp;
 			}
 			
-			console.log(new RGBColor([1,2,3],'hsv'))
 		</script>
 	</body>
 </html>
