@@ -154,9 +154,9 @@
 						}
 					}
 					if(typeof r=='string'){
-						if(/rgb/.test(r)){
-							console.log(r)
+						if(/,/.test(r)){
 							var temp = /\d+,\d+,\d+/.exec(r)[0].split(',');
+							console.log(temp)
 						}else if(/#/.test(r)){
 							var temp = r.match(/[0-9a-f]{2}/g)
 						}
@@ -203,38 +203,31 @@
 					return [this.h,this.s,this.v]
 				}
 				hsv2rgb(){
-					var s,h,v,r,g,b,_h,f,p,q,t;
+					var s,h,v,_h,f,p,q,t;
 					h=this.h;
-					s=this.s/100;
-					v=this.v/100;
-					if ( s == 0 ) {
-						r = g = b = v;
-						
-					}else{
-						
-						_h = h % 6;
-						f = h / 60 - _h;
-						p = v * ( 1 - s );
-						q = v * ( 1 - f * s );
-						t = v * ( 1 - ( 1 - f ) * s);
-						switch( _h ){
-							case 0:
-								r = v; g = t; b = p; break;
-							case 1:
-								r = q; g = v; b = p; break;
-							case 2:
-								r = p; g = v; b = t; break;
-							case 3:
-								r = p; g = q; b = v; break;
-							case 4:
-								r = t; g = p; b = v; break;
-							case 5:
-								r = v; g = p; b = q; break;
-						}
+					s=this.s;
+					v=this.v;
+					var max=Math.max(s,v)*255/100;
+					var min=max*(100-s)/100;
+					if(h>=0&&h<=60){
+						var [r,g,b] = [max,h*(max-min)/60+min,min]
+					}else if(h>60&&h<=120){
+						var [r,g,b] = [(120-h)*(max-min)/60+min,max,min]
+					}else if(h>120&&h<=180){
+						var [r,g,b] = [min,max,(h-120)*(max-min)/60+min]
+					}else if(h>180&&h<=240){
+						var [r,g,b] = [min,(240-h)*(max-min)/60+min,max]
+					}else if(h>240&&h<=300){
+						var [r,g,b] = [(h-240)*(max-min)/60+min,min,max]
+					}else if(h>300&&h<=360){
+						var [r,g,b] = [max,min,(360-h)*(max-min)/60+min]
 					}
-					this.r=Math.round(r*255);
-					this.g=Math.round(g*255);
-					this.b=Math.round(b*255);
+					this.r=Math.round(r);
+					this.g=Math.round(g);
+					this.b=Math.round(b);
+					return [this.r,this.g,this.b]
+				}
+				rgb(){
 					return [this.r,this.g,this.b]
 				}
 				setColor(){
@@ -271,10 +264,11 @@
 						inputH.value=h;
 					inputS.value=s;
 					inputV.value=v;
-					var tempRGB=hsv2rgb(h,s,v);
-					inputR.value=tempRGB[0];
-					inputG.value=tempRGB[1];
-					inputB.value=tempRGB[2];
+					var tempRGB=new RGBColor(h,s,v,'hsv');
+					console.log(tempRGB)
+					inputR.value=tempRGB.r;
+					inputG.value=tempRGB.g;
+					inputB.value=tempRGB.b;
 //					hexadecimal.value='#'+(r<16?'0':'')+r.toString(16)+(g<16?'0':'')+g.toString(16)+(b<16?'0':'')+b.toString(16);
 					cvs.clearRect(0,0,255,255)
 					var paletteGradient=null;
@@ -289,13 +283,9 @@
 //						paletteGradient.addColorStop(1,'rgb('+(255-y)+','+(255-y)+','+255+')');
 						_v=Math.floor(100*(255-y)/255);
 						temp=new RGBColor(h,100,_v,'hsv')
-//						console.log(temp)
-						if(y>=140){
-							
-//						console.log(temp)
-						}
-						paletteGradient.addColorStop(0,'#'+(255-y).toString(16)+(255-y).toString(16)+(255-y).toString(16));
-						paletteGradient.addColorStop(1,'rgb('+rgb.join(',')+')');
+						var shex=(255-y).toString(16).length<2?'0':''+(255-y).toString(16);
+						paletteGradient.addColorStop(0,'rgb('+[255-y,255-y,255-y].join(',')+')');
+						paletteGradient.addColorStop(1,'rgb('+temp.rgb().join(',')+')');
 //						cvs.fillStyle=paletteGradient;
 //						cvs.fillRect(0,y-1,255,y);
 						cvs.strokeStyle=paletteGradient;
@@ -331,14 +321,6 @@
 				init(){
 					this.drawBar();
 					this.drawMain()
-					
-					
-					
-//					var paletteGradient=cvs.createLinearGradient(0,0,255,0);
-					
-//					console.time()
-					
-//					console.timeEnd()
 				}
 			}
 			var t=new palette();
@@ -347,6 +329,7 @@
 			Dbar.parentNode.addEventListener('mousedown',function(e){locationPicker.call(Dbar,e,'y')})
 			function locationPicker(e,xy){
 				var that=this;
+				var pickerType=this.id;
 				var picker=this.nextSibling;
 				var x=e.clientX-getOffsetLeft(this),y=e.clientY-getOffsetTop(this);
 				console.log(x,y);
@@ -357,7 +340,8 @@
 					picker.style.top=y+'px'
 				}
 //				t.drawBar()
-				t.drawMain()
+				if(pickerType=='bar')t.drawMain()
+				
 				function Move(e){
 					
 					var x=e.clientX-getOffsetLeft(that),y=e.clientY-getOffsetTop(that);
@@ -369,7 +353,7 @@
 					if(/y/.test(xy)){
 						picker.style.top=y+'px'
 					}
-					t.drawMain()
+					if(pickerType=='bar')t.drawMain()
 				}
 				function Up(e){
 					document.removeEventListener('mousemove',Move)
@@ -380,7 +364,7 @@
 			}
 			
 			tempBtn.addEventListener('click',function(){
-				tempColors.push(new RGBColor(inputR.value,inputG.value,inputB.value))
+				tempColors.push(new RGBColor([inputR.value,inputG.value,inputB.value].join(',')))
 				var colorsHtml="";
 				tempColors.forEach(function(e){
 					colorsHtml+=`<div class="colors" style="background: rgb(${e.r},${e.g},${e.b});" onclick="getdom(this)"></div>`
@@ -398,53 +382,6 @@
 				console.log(color)
 			}
 
-
-
-
-//			barPicker.addEventListener('mousedown',function (e){
-//				var Move=function(e){
-//					var x=e.clientX-getOffsetLeft(this.parentNode),y=e.clientY-getOffsetTop(this.parentNode);
-//					x=limit(x,0,255),y=limit(y,0,255);
-//					if(/x/.test(xy)){
-//						picker.style.left=x+'px'
-//					}
-//					if(/y/.test(xy)){
-//						picker.style.top=y+'px'
-//					}
-//					t.init()
-//				}
-//				var Up=function(e){
-//					document.removeEventListener('mousemove',Move)
-//					document.body.removeEventListener('mouseup',Up)
-//				}
-//				document.addEventListener('mousemove',Move)
-//				document.addEventListener('mouseup',Up)
-//			})
-//			palettePicker.addEventListener('mousedown',function(e){
-//				console.log('触发')
-//				var y=e.clientY;
-//				var x=e.clientX;
-//				var top=this.offsetTop;
-//				var left=this.offsetLeft;
-//				var that=this;
-//				var Move=function(e){
-//					var dy=e.clientY-y,dx=e.clientX-x;
-//					y=e.clientY;
-//					x=e.clientX;
-//					top=limit(top+dy,-5,250);
-//					left=limit(left+dx,-5,250);
-//					that.style.top=top+'px';
-//					that.style.left=left+'px';
-//					t.init()
-//				}
-//				var Up=function(e){
-//					document.removeEventListener('mousemove',Move)
-//					document.body.removeEventListener('mouseup',Up)
-//				}
-//				document.addEventListener('mousemove',Move)
-//				document.addEventListener('mouseup',Up)
-//			})
-			
 			function limit(num,min,max){
 				if(num<min)num=min;
 				if(num>max)num=max;
